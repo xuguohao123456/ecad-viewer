@@ -29,18 +29,23 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # 4. 关键变动：构建 ARM64 镜像，并不 push，而是直接导出为本地 tar 镜像包
-      - name: Build ARM64 container
+      - name: Login to tens
+        uses: docker/login-action@v3
+        with:
+          registry: ccr.ccs.tencentyun.com
+          username: ${{ secrets.ccr_name }}
+          password: ${{ secrets.ccr_passowrd }}
+
+      - name: Build container
         uses: docker/build-push-action@v5
         with:
           context: .
-          platforms: linux/arm64  # 👈 锁定编译为 ARM64 架构
-          push: false             # 👈 关闭远程推送
-          outputs: type=docker,dest=/tmp/ecad-viewer-service-arm64.tar # 👈 导出为本地文件
-          tags: ghcr.io/huaqiu-electronics/ecad-viewer-service:${{ github.event.inputs.tag_name || github.ref_name }}
-          build-args: |
-            IMAGE_TAG=${{ github.event.inputs.tag_name || github.ref_name }}
-
+          push: true
+          platforms: linux/arm64
+          tags: 
+          build-args: ${{ secrets.image_name }}
+            IMAGE_TAG=lite
+            
       # 5. 上传到 Actions 的 Artifacts，让您能在网页端点击下载
       - name: Upload Docker Image Artifact
         uses: actions/upload-artifact@v4
