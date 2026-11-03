@@ -17,15 +17,10 @@ jobs:
       # 1. 检出代码
       - name: Checkout
         uses: actions/checkout@v4
-        with:
-          # 如果是手动触发，则拉取输入的tag；否则使用推送时对应的 tag
-          ref: ${{ github.event.inputs.tag_name || github.ref_name }}
-
-      # 2. 设置 QEMU 模拟器以支持编译 ARM64 架构
+        
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
-      # 3. 设置 Docker Buildx 构建工具
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -43,13 +38,5 @@ jobs:
           push: true
           platforms: linux/arm64
           tags: ${{ secrets.image_name }}
-          build-args: |
-            IMAGE_TAG=lite
-            
-      # 5. 上传到 Actions 的 Artifacts，让您能在网页端点击下载
-      - name: Upload Docker Image Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ecad-viewer-service-arm64-image
-          path: /tmp/ecad-viewer-service-arm64.tar
-          retention-days: 7
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
